@@ -24,7 +24,31 @@ class App extends Component {
       box: {},
       route: 'signin',
       isSignedIn: false,
+      user: {
+        id: '',
+        name: "",
+        email: "",
+        entries: 0,
+        joining: ''
+      }
     }
+  }
+
+  loadUser = (data) => {
+    this.setState({user: {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      entries: data.entries,
+      joining: data.joining
+
+    }})
+  }
+
+  componentDidMount() {
+    fetch('http://localhost:8080/')
+      .then(response => response.json())
+      .then(console.log)
   }
 
   calculateFaceLocation = (data) => {
@@ -50,8 +74,26 @@ class App extends Component {
 
   onButtonSubmit = () => {
     this.setState({imageUrl: this.state.input});
-    app.models.predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
-    .then(response => this.displayBox(this.calculateFaceLocation(response)))
+    app.models.predict(
+      Clarifai.FACE_DETECT_MODEL, 
+      this.state.input
+    )
+    .then(response => {
+      if(response) {
+        fetch('http://localhost:8080/image', {
+          method: 'put',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            id: this.state.user.id
+          })
+        })
+          .then(response => response.json())
+          .then(count => {
+            this.setState(Object.assign(this.state.user, {entries: count}))
+          })
+      }
+      this.displayBox(this.calculateFaceLocation(response))
+    } )
     .catch(err => console.log(err));     
   }
 
@@ -89,21 +131,21 @@ class App extends Component {
                     enable: true,
                     outMode: "bounce",
                     random: false,
-                    speed: 2,
+                    speed: 1,
                     straight: false,
                     },
                     number: {
                     density: {
                         enable: true,
-                        area: 1000,
+                        area: 600,
                     },
                     value: 120,
                     },
                     opacity: {
-                    value: 0.5,
+                    value: 0.75,
                     },
                     shape: {
-                    type: "circle",
+                    type: "",
                     },
                     size: {
                     random: true,
@@ -117,19 +159,16 @@ class App extends Component {
         {route === 'home' 
         ? <div>
             <Logo />
-            <Rank />
+            <Rank name={this.state.user.name} entries={this.state.user.entries} />
             <ImageLinkForm onInputChange={this.onInputChange} onButtonSubmit={this.onButtonSubmit} />
             <FaceRecognition box={box} imageUrl={imageUrl} />
           </div>
 
         : (
             route === 'signin'
-            ? <Signin onRouteChange={this.onRouteChange} />
-            : <Register onRouteChange={this.onRouteChange} />
+            ? <Signin loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
+            : <Register loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
           )
-        
-        
-         
         }
       </div>
     );
