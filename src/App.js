@@ -42,7 +42,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    fetch('http://localhost:8080/')
+    fetch('https://hidden-basin-85479.herokuapp.com/')
       .then(response => response.json())
       .then(console.log)
   }
@@ -70,7 +70,7 @@ class App extends Component {
 
   onButtonSubmit = () => {
     this.setState({imageUrl: this.state.input});
-    fetch('http://localhost:8080/imageurl', {
+    fetch('https://hidden-basin-85479.herokuapp.com/imageurl', {
         method: 'post',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
@@ -80,7 +80,7 @@ class App extends Component {
     .then(response => response.json())
     .then(response => {
     if(response) {
-      fetch('http://localhost:8080/image', {
+      fetch('https://hidden-basin-85479.herokuapp.com/image', {
         method: 'put',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
